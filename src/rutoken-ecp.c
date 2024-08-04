@@ -304,6 +304,7 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
     printf("Hardware Version: %d.%d\n", tokenInfo.hardwareVersion.major, tokenInfo.hardwareVersion.minor);
     printf("Firmware Version: %d.%d\n", tokenInfo.firmwareVersion.major, tokenInfo.firmwareVersion.minor);
 
+    tokenInfoEx.ulSizeofThisStructure = sizeof(CK_TOKEN_INFO_EXTENDED);
     rv = context.functionListEx->C_EX_GetTokenInfoExtended(context.slots[context.slot], &tokenInfoEx);
     check(rv == CKR_OK, "C_EX_GetTokenInfoExtended: %s", rv_to_str(rv));
 
