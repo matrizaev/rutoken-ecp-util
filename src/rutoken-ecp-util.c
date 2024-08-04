@@ -21,9 +21,9 @@ static char args_doc[] = "(list|sign <FILE>)";
 
 /* The options we understand. */
 static struct argp_option options[] = {
-    {"slot", 's', "SLOT", 0, "The slot number"},
-    {"pin", 'p', "USER_PIN", 0, "User pin"},
-    {"key_pair", 'k', "KEY_PAIR_ID", 0, "Key pair ID"},
+    {"slot", 's', "SLOT", 0, "The slot number. Default is 0"},
+    {"pin", 'p', "USER_PIN", 0, "User pin. Default is 12345678"},
+    {"key_pair", 'k', "KEY_PAIR_ID", 0, "Key pair ID. Default is <empty>"},
     {0}};
 
 /* Used by main to communicate with parse_opt. */
@@ -83,7 +83,7 @@ void main(int argc, char *argv[])
     struct arguments arguments;
     arguments.slot = 0;
     arguments.user_pin = "12345678"; // default user pin
-    arguments.key_pair_id = "1";     // default key pair id
+    arguments.key_pair_id = "";      // default key pair id
     arguments.args[0] = NULL;
     arguments.args[1] = NULL;
 
@@ -100,7 +100,7 @@ void main(int argc, char *argv[])
 
     if (strcmp(command, "list") == 0)
     {
-        puts("Not implemented");
+        list_token(arguments.user_pin, strlen(arguments.user_pin), arguments.key_pair_id, strlen(arguments.key_pair_id), arguments.slot);
     }
     else if (strcmp(command, "sign") == 0)
     {
