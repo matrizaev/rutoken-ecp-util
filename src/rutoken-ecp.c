@@ -264,6 +264,7 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
     CK_INFO info = {0};
     CK_SLOT_INFO slotInfo = {0};
     CK_TOKEN_INFO tokenInfo = {0};
+    CK_TOKEN_INFO_EXTENDED tokenInfoEx = {0};
 
     rv = context.functionList->C_GetInfo(&info);
     check(rv == CKR_OK, "C_GetInfo: %s", rv_to_str(rv));
@@ -302,6 +303,28 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
     printf("Free Private Memory: %lu\n", tokenInfo.ulFreePrivateMemory);
     printf("Hardware Version: %d.%d\n", tokenInfo.hardwareVersion.major, tokenInfo.hardwareVersion.minor);
     printf("Firmware Version: %d.%d\n", tokenInfo.firmwareVersion.major, tokenInfo.firmwareVersion.minor);
+
+    rv = context.functionListEx->C_EX_GetTokenInfoExtended(context.slots[context.slot], &tokenInfoEx);
+    check(rv == CKR_OK, "C_EX_GetTokenInfoExtended: %s", rv_to_str(rv));
+
+    printf("Token Type: %lu\n", tokenInfoEx.ulTokenType);
+    printf("Token Protocol: %lu\n", tokenInfoEx.ulProtocolNumber);
+    printf("Token Microcode: %lu\n", tokenInfoEx.ulMicrocodeNumber);
+    printf("Token Order: %lu\n", tokenInfoEx.ulOrderNumber);
+    printf("Token Flags: %lu\n", tokenInfoEx.flags);
+    printf("Token Max Admin Pin Len: %lu\n", tokenInfoEx.ulMaxAdminPinLen);
+    printf("Token Min Admin Pin Len: %lu\n", tokenInfoEx.ulMinAdminPinLen);
+    printf("Token Max User Pin Len: %lu\n", tokenInfoEx.ulMaxUserPinLen);
+    printf("Token Min User Pin Len: %lu\n", tokenInfoEx.ulMinUserPinLen);
+    printf("Token Max Admin Retry Count: %lu\n", tokenInfoEx.ulMaxAdminRetryCount);
+    printf("Token Left Admin Retry Count: %lu\n", tokenInfoEx.ulAdminRetryCountLeft);
+    printf("Token Left User Retry Count: %lu\n", tokenInfoEx.ulUserRetryCountLeft);
+    printf("Token Total Memory: %lu\n", tokenInfoEx.ulTotalMemory);
+    printf("Token Free Memory: %lu\n", tokenInfoEx.ulFreeMemory);
+    printf("Token Class: %lu\n", tokenInfoEx.ulTokenClass);
+    printf("Token Batter Voltage: %lu\n", tokenInfoEx.ulBatteryVoltage);
+    printf("Token Body Color: %lu\n", tokenInfoEx.ulBodyColor);
+    printf("Token Firmware Checksum: %lu\n", tokenInfoEx.ulFirmwareChecksum);
 
     // /*************************************************************************
     //  * Найти закрытый ключ на токене                                          *
