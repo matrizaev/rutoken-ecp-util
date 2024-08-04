@@ -5,207 +5,8 @@
 #include <rutoken/rtpkcs11.h>
 
 #include "rutoken-ecp.h"
+#include "errors.h"
 #include "dbg.h"
-
-/*************************************************************************
- * Функция преобразования ошибки PKCS11 к строке                          *
- *************************************************************************/
-static const char *rvToStr(CK_RV rv)
-{
-    switch (rv)
-    {
-    case CKR_OK:
-        return "CKR_OK";
-    case CKR_CANCEL:
-        return "CKR_CANCEL";
-    case CKR_HOST_MEMORY:
-        return "CKR_HOST_MEMORY";
-    case CKR_SLOT_ID_INVALID:
-        return "CKR_SLOT_ID_INVALID";
-    case CKR_GENERAL_ERROR:
-        return "CKR_GENERAL_ERROR";
-    case CKR_FUNCTION_FAILED:
-        return "CKR_FUNCTION_FAILED";
-    case CKR_ARGUMENTS_BAD:
-        return "CKR_ARGUMENTS_BAD";
-    case CKR_NO_EVENT:
-        return "CKR_NO_EVENT";
-    case CKR_NEED_TO_CREATE_THREADS:
-        return "CKR_NEED_TO_CREATE_THREADS";
-    case CKR_CANT_LOCK:
-        return "CKR_CANT_LOCK";
-    case CKR_ATTRIBUTE_READ_ONLY:
-        return "CKR_ATTRIBUTE_READ_ONLY";
-    case CKR_ATTRIBUTE_SENSITIVE:
-        return "CKR_ATTRIBUTE_SENSITIVE";
-    case CKR_ATTRIBUTE_TYPE_INVALID:
-        return "CKR_ATTRIBUTE_TYPE_INVALID";
-    case CKR_ATTRIBUTE_VALUE_INVALID:
-        return "CKR_ATTRIBUTE_VALUE_INVALID";
-    case CKR_DATA_INVALID:
-        return "CKR_DATA_INVALID";
-    case CKR_DATA_LEN_RANGE:
-        return "CKR_DATA_LEN_RANGE";
-    case CKR_DEVICE_ERROR:
-        return "CKR_DEVICE_ERROR";
-    case CKR_DEVICE_MEMORY:
-        return "CKR_DEVICE_MEMORY";
-    case CKR_DEVICE_REMOVED:
-        return "CKR_DEVICE_REMOVED";
-    case CKR_ENCRYPTED_DATA_INVALID:
-        return "CKR_ENCRYPTED_DATA_INVALID";
-    case CKR_ENCRYPTED_DATA_LEN_RANGE:
-        return "CKR_ENCRYPTED_DATA_LEN_RANGE";
-    case CKR_FUNCTION_CANCELED:
-        return "CKR_FUNCTION_CANCELED";
-    case CKR_FUNCTION_NOT_PARALLEL:
-        return "CKR_FUNCTION_NOT_PARALLEL";
-    case CKR_FUNCTION_NOT_SUPPORTED:
-        return "CKR_FUNCTION_NOT_SUPPORTED";
-    case CKR_KEY_HANDLE_INVALID:
-        return "CKR_KEY_HANDLE_INVALID";
-    case CKR_KEY_SIZE_RANGE:
-        return "CKR_KEY_SIZE_RANGE";
-    case CKR_KEY_TYPE_INCONSISTENT:
-        return "CKR_KEY_TYPE_INCONSISTENT";
-    case CKR_KEY_NOT_NEEDED:
-        return "CKR_KEY_NOT_NEEDED";
-    case CKR_KEY_CHANGED:
-        return "CKR_KEY_CHANGED";
-    case CKR_KEY_NEEDED:
-        return "CKR_KEY_NEEDED";
-    case CKR_KEY_INDIGESTIBLE:
-        return "CKR_KEY_INDIGESTIBLE";
-    case CKR_KEY_FUNCTION_NOT_PERMITTED:
-        return "CKR_KEY_FUNCTION_NOT_PERMITTED";
-    case CKR_KEY_NOT_WRAPPABLE:
-        return "CKR_KEY_NOT_WRAPPABLE";
-    case CKR_KEY_UNEXTRACTABLE:
-        return "CKR_KEY_UNEXTRACTABLE";
-    case CKR_MECHANISM_INVALID:
-        return "CKR_MECHANISM_INVALID";
-    case CKR_MECHANISM_PARAM_INVALID:
-        return "CKR_MECHANISM_PARAM_INVALID";
-    case CKR_OBJECT_HANDLE_INVALID:
-        return "CKR_OBJECT_HANDLE_INVALID";
-    case CKR_OPERATION_ACTIVE:
-        return "CKR_OPERATION_ACTIVE";
-    case CKR_OPERATION_NOT_INITIALIZED:
-        return "CKR_OPERATION_NOT_INITIALIZED";
-    case CKR_PIN_INCORRECT:
-        return "CKR_PIN_INCORRECT";
-    case CKR_PIN_INVALID:
-        return "CKR_PIN_INVALID";
-    case CKR_PIN_LEN_RANGE:
-        return "CKR_PIN_LEN_RANGE";
-    case CKR_PIN_EXPIRED:
-        return "CKR_PIN_EXPIRED";
-    case CKR_PIN_LOCKED:
-        return "CKR_PIN_LOCKED";
-    case CKR_SESSION_CLOSED:
-        return "CKR_SESSION_CLOSED";
-    case CKR_SESSION_COUNT:
-        return "CKR_SESSION_COUNT";
-    case CKR_SESSION_HANDLE_INVALID:
-        return "CKR_SESSION_HANDLE_INVALID";
-    case CKR_SESSION_PARALLEL_NOT_SUPPORTED:
-        return "CKR_SESSION_PARALLEL_NOT_SUPPORTED";
-    case CKR_SESSION_READ_ONLY:
-        return "CKR_SESSION_READ_ONLY";
-    case CKR_SESSION_EXISTS:
-        return "CKR_SESSION_EXISTS";
-    case CKR_SESSION_READ_ONLY_EXISTS:
-        return "CKR_SESSION_READ_ONLY_EXISTS";
-    case CKR_SESSION_READ_WRITE_SO_EXISTS:
-        return "CKR_SESSION_READ_WRITE_SO_EXISTS";
-    case CKR_SIGNATURE_INVALID:
-        return "CKR_SIGNATURE_INVALID";
-    case CKR_SIGNATURE_LEN_RANGE:
-        return "CKR_SIGNATURE_LEN_RANGE";
-    case CKR_TEMPLATE_INCOMPLETE:
-        return "CKR_TEMPLATE_INCOMPLETE";
-    case CKR_TEMPLATE_INCONSISTENT:
-        return "CKR_TEMPLATE_INCONSISTENT";
-    case CKR_TOKEN_NOT_PRESENT:
-        return "CKR_TOKEN_NOT_PRESENT";
-    case CKR_TOKEN_NOT_RECOGNIZED:
-        return "CKR_TOKEN_NOT_RECOGNIZED";
-    case CKR_TOKEN_WRITE_PROTECTED:
-        return "CKR_TOKEN_WRITE_PROTECTED";
-    case CKR_UNWRAPPING_KEY_HANDLE_INVALID:
-        return "CKR_UNWRAPPING_KEY_HANDLE_INVALID";
-    case CKR_UNWRAPPING_KEY_SIZE_RANGE:
-        return "CKR_UNWRAPPING_KEY_SIZE_RANGE";
-    case CKR_UNWRAPPING_KEY_TYPE_INCONSISTENT:
-        return "CKR_UNWRAPPING_KEY_TYPE_INCONSISTENT";
-    case CKR_USER_ALREADY_LOGGED_IN:
-        return "CKR_USER_ALREADY_LOGGED_IN";
-    case CKR_USER_NOT_LOGGED_IN:
-        return "CKR_USER_NOT_LOGGED_IN";
-    case CKR_USER_PIN_NOT_INITIALIZED:
-        return "CKR_USER_PIN_NOT_INITIALIZED";
-    case CKR_USER_TYPE_INVALID:
-        return "CKR_USER_TYPE_INVALID";
-    case CKR_USER_ANOTHER_ALREADY_LOGGED_IN:
-        return "CKR_USER_ANOTHER_ALREADY_LOGGED_IN";
-    case CKR_USER_TOO_MANY_TYPES:
-        return "CKR_USER_TOO_MANY_TYPES";
-    case CKR_WRAPPED_KEY_INVALID:
-        return "CKR_WRAPPED_KEY_INVALID";
-    case CKR_WRAPPED_KEY_LEN_RANGE:
-        return "CKR_WRAPPED_KEY_LEN_RANGE";
-    case CKR_WRAPPING_KEY_HANDLE_INVALID:
-        return "CKR_WRAPPING_KEY_HANDLE_INVALID";
-    case CKR_WRAPPING_KEY_SIZE_RANGE:
-        return "CKR_WRAPPING_KEY_SIZE_RANGE";
-    case CKR_WRAPPING_KEY_TYPE_INCONSISTENT:
-        return "CKR_WRAPPING_KEY_TYPE_INCONSISTENT";
-    case CKR_RANDOM_SEED_NOT_SUPPORTED:
-        return "CKR_RANDOM_SEED_NOT_SUPPORTED";
-    case CKR_RANDOM_NO_RNG:
-        return "CKR_RANDOM_NO_RNG";
-    case CKR_DOMAIN_PARAMS_INVALID:
-        return "CKR_DOMAIN_PARAMS_INVALID";
-    case CKR_BUFFER_TOO_SMALL:
-        return "CKR_BUFFER_TOO_SMALL";
-    case CKR_SAVED_STATE_INVALID:
-        return "CKR_SAVED_STATE_INVALID";
-    case CKR_INFORMATION_SENSITIVE:
-        return "CKR_INFORMATION_SENSITIVE";
-    case CKR_STATE_UNSAVEABLE:
-        return "CKR_STATE_UNSAVEABLE";
-    case CKR_CRYPTOKI_NOT_INITIALIZED:
-        return "CKR_CRYPTOKI_NOT_INITIALIZED";
-    case CKR_CRYPTOKI_ALREADY_INITIALIZED:
-        return "CKR_CRYPTOKI_ALREADY_INITIALIZED";
-    case CKR_MUTEX_BAD:
-        return "CKR_MUTEX_BAD";
-    case CKR_MUTEX_NOT_LOCKED:
-        return "CKR_MUTEX_NOT_LOCKED";
-    case CKR_NEW_PIN_MODE:
-        return "CKR_NEW_PIN_MODE";
-    case CKR_NEXT_OTP:
-        return "CKR_NEXT_OTP";
-    case CKR_FUNCTION_REJECTED:
-        return "CKR_FUNCTION_REJECTED";
-    case CKR_CORRUPTED_MAPFILE:
-        return "CKR_CORRUPTED_MAPFILE";
-    case CKR_WRONG_VERSION_FIELD:
-        return "CKR_WRONG_VERSION_FIELD";
-    case CKR_WRONG_PKCS1_ENCODING:
-        return "CKR_WRONG_PKCS1_ENCODING";
-    case CKR_RTPKCS11_DATA_CORRUPTED:
-        return "CKR_RTPKCS11_DATA_CORRUPTED";
-    case CKR_RTPKCS11_RSF_DATA_CORRUPTED:
-        return "CKR_RTPKCS11_RSF_DATA_CORRUPTED";
-    case CKR_SM_PASSWORD_INVALID:
-        return "CKR_SM_PASSWORD_INVALID";
-    case CKR_LICENSE_READ_ONLY:
-        return "CKR_LICENSE_READ_ONLY";
-    default:
-        return "Unknown error";
-    }
-}
 
 /*************************************************************************
  * Функция поиска объектов по заданному шаблону                          *
@@ -228,7 +29,7 @@ static int findObjects(CK_FUNCTION_LIST_PTR functionList, // Указатель 
      * Инициализировать операцию поиска                                       *
      *************************************************************************/
     rv = functionList->C_FindObjectsInit(session, attributes, attrCount);
-    check(rv == CKR_OK, "%s", rvToStr(rv));
+    check(rv == CKR_OK, "%s", rv_to_str(rv));
     errorCode = 2;
 
     /*************************************************************************
@@ -244,7 +45,7 @@ static int findObjects(CK_FUNCTION_LIST_PTR functionList, // Указатель 
         *objects = buffer;
 
         rv = functionList->C_FindObjects(session, *objects + *objectsCount, bufferSize - *objectsCount, &newObjectsCount);
-        check(rv == CKR_OK, "%s", rvToStr(rv));
+        check(rv == CKR_OK, "%s", rv_to_str(rv));
 
         *objectsCount += newObjectsCount;
 
@@ -272,7 +73,7 @@ error:
     {
         rv = functionList->C_FindObjectsFinal(session);
         if (rv != CKR_OK)
-            log_err("%s", rvToStr(rv));
+            log_err("%s", rv_to_str(rv));
         if (errorCode == 4)
             errorCode = 0;
     }
@@ -321,7 +122,7 @@ uint8_t *sign(void *inData, size_t inputLength, size_t *outputLength, uint8_t *u
     CK_ULONG signatureSize = 0;   // Размер буфера, содержащего подпись для исходных данных, в байтах
     uint8_t *result = NULL;
 
-    check(inData != NULL && outputLength != NULL && userPIN != NULL && keyPairId != NULL && keyPairIdLen != 0, "Function input is invalid.");
+    check(inData != NULL && outputLength != NULL && userPIN != NULL && userPINLen && keyPairId != NULL && keyPairIdLen != 0, "Function input is invalid.");
 
     /*************************************************************************
      * Шаблон для поиска закрытого ключа ГОСТ Р 34.10-2012(256)               *
@@ -373,28 +174,28 @@ uint8_t *sign(void *inData, size_t inputLength, size_t *outputLength, uint8_t *u
      *************************************************************************/
 
     rv = getFunctionList(&functionList);
-    check(rv == CKR_OK, "getFunctionList: %s", rvToStr(rv));
+    check(rv == CKR_OK, "getFunctionList: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Получить структуру с указателями на функции расширения стандарта       *
      *************************************************************************/
 
     rv = getFunctionListEx(&functionListEx);
-    check(rv == CKR_OK, "getFunctionListEx: %s", rvToStr(rv));
+    check(rv == CKR_OK, "getFunctionListEx: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Инициализировать библиотеку                                            *
      *************************************************************************/
 
     rv = functionList->C_Initialize(NULL);
-    check(rv == CKR_OK, "C_Initialize: %s", rvToStr(rv));
+    check(rv == CKR_OK, "C_Initialize: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Получить количество слотов c подключенными токенами                    *
      *************************************************************************/
 
     rv = functionList->C_GetSlotList(CK_TRUE, NULL, &slotCount);
-    check((rv == CKR_OK) && (slotCount != 0) && (slot <= slotCount - 1), "There are no slots available: %s", rvToStr(rv));
+    check((rv == CKR_OK) && (slotCount != 0) && (slot <= slotCount - 1), "There are no slots available: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Получить список слотов c подключенными токенами                        *
@@ -404,21 +205,21 @@ uint8_t *sign(void *inData, size_t inputLength, size_t *outputLength, uint8_t *u
     check_mem(slots);
 
     rv = functionList->C_GetSlotList(CK_TRUE, slots, &slotCount);
-    check((rv == CKR_OK) && (slotCount != 0) && (slot <= slotCount - 1), "There are no slots available: %s", rvToStr(rv));
+    check((rv == CKR_OK) && (slotCount != 0) && (slot <= slotCount - 1), "There are no slots available: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Открыть RW сессию в первом доступном слоте                             *
      *************************************************************************/
 
     rv = functionList->C_OpenSession(slots[slot], CKF_SERIAL_SESSION | CKF_RW_SESSION, NULL, NULL, &session);
-    check(rv == CKR_OK, "C_OpenSession: %s", rvToStr(rv));
+    check(rv == CKR_OK, "C_OpenSession: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Выполнить аутентификацию Пользователя                                  *
      *************************************************************************/
 
     rv = functionList->C_Login(session, CKU_USER, userPIN, userPINLen);
-    check(rv == CKR_OK, "C_Login: %s", rvToStr(rv));
+    check(rv == CKR_OK, "C_Login: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Найти закрытый ключ на токене                                          *
@@ -439,7 +240,7 @@ uint8_t *sign(void *inData, size_t inputLength, size_t *outputLength, uint8_t *u
      *************************************************************************/
     rv = functionListEx->C_EX_PKCS7Sign(session, inData, inputLength, certificates[0],
                                         &signature, &signatureSize, privateKeys[0], NULL, 0, USE_HARDWARE_HASH | PKCS7_DETACHED_SIGNATURE);
-    check(rv == CKR_OK && signatureSize != 0, "C_EX_PKCS7Sign: %s", rvToStr(rv));
+    check(rv == CKR_OK && signatureSize != 0, "C_EX_PKCS7Sign: %s", rv_to_str(rv));
 
     /*************************************************************************
      * Копируем полученную PKCS7 CMS отсоединённую подпись.                   *
@@ -464,7 +265,7 @@ error:
     {
         rv = functionListEx->C_EX_FreeBuffer(signature);
         if (rv != CKR_OK)
-            log_err("C_EX_FreeBuffer: %s", rvToStr(rv));
+            log_err("C_EX_FreeBuffer: %s", rv_to_str(rv));
     }
 
     /*************************************************************************
@@ -474,10 +275,10 @@ error:
     {
         rv = functionList->C_Logout(session);
         if (rv != CKR_OK)
-            log_err("%s", rvToStr(rv));
+            log_err("%s", rv_to_str(rv));
         rv = functionList->C_CloseSession(session);
         if (rv != CKR_OK)
-            log_err("%s", rvToStr(rv));
+            log_err("%s", rv_to_str(rv));
     }
 
     /*************************************************************************
@@ -495,7 +296,7 @@ error:
     {
         rv = functionList->C_Finalize(NULL);
         if (rv != CKR_OK)
-            log_err("%s", rvToStr(rv));
+            log_err("%s", rv_to_str(rv));
     }
 
     /*************************************************************************
