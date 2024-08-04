@@ -288,8 +288,8 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
 
     printf("Token Label: %.32s\n", tokenInfo.label);
     printf("Manufacturer ID: %.32s\n", tokenInfo.manufacturerID);
-    printf("Token Model: %.32s\n", tokenInfo.model);
-    printf("Token Serial Number: %.32s\n", tokenInfo.serialNumber);
+    printf("Token Model: %.16s\n", tokenInfo.model);
+    printf("Token Serial Number: %.16s\n", tokenInfo.serialNumber);
     printf("Token Flags: %lu\n", tokenInfo.flags);
     printf("Session Count: %lu\n", tokenInfo.ulSessionCount);
     printf("Max Session Count: %lu\n", tokenInfo.ulMaxSessionCount);
