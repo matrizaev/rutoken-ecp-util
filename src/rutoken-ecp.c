@@ -273,17 +273,17 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
     printf("Library Description: %.32s\n", info.libraryDescription);
     printf("Library Version: %d.%d\n", info.libraryVersion.major, info.libraryVersion.minor);
 
-    rv = C_GetSlotInfo(context.slots[context.slot], &slotInfo);
+    rv = context.functionList->C_GetSlotInfo(context.slots[context.slot], &slotInfo);
     check(rv == CKR_OK, "C_GetSlotInfo: %s", rv_to_str(rv));
 
     printf("Slot Description: %.64s\n", slotInfo.slotDescription);
     printf("Manufacturer ID: %.32s\n", slotInfo.manufacturerID);
     printf("Slot ID: %lu\n", context.slots[context.slot]);
     printf("Slot Flags: %lu\n", slotInfo.flags);
-    printf("Hardware Version: %lu.%lu\n", slotInfo.hardwareVersion.major, slotInfo.hardwareVersion.minor);
-    printf("Firmware Version: %lu.%lu\n", slotInfo.firmwareVersion.major, slotInfo.firmwareVersion.minor);
+    printf("Hardware Version: %d.%d\n", slotInfo.hardwareVersion.major, slotInfo.hardwareVersion.minor);
+    printf("Firmware Version: %d.%d\n", slotInfo.firmwareVersion.major, slotInfo.firmwareVersion.minor);
 
-    rv = C_GetTokenInfo(context.slots[context.slot], &tokenInfo);
+    rv = context.functionList->C_GetTokenInfo(context.slots[context.slot], &tokenInfo);
     check(rv == CKR_OK, "C_GetTokenInfo: %s", rv_to_str(rv));
 
     printf("Token Label: %.32s\n", tokenInfo.label);
@@ -300,8 +300,8 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
     printf("Free Public Memory: %lu\n", tokenInfo.ulFreePublicMemory);
     printf("Total Private Memory: %lu\n", tokenInfo.ulTotalPrivateMemory);
     printf("Free Private Memory: %lu\n", tokenInfo.ulFreePrivateMemory);
-    printf("Hardware Version: %lu.%lu\n", tokenInfo.hardwareVersion.major, tokenInfo.hardwareVersion.minor);
-    printf("Firmware Version: %lu.%lu\n", tokenInfo.firmwareVersion.major, tokenInfo.firmwareVersion.minor);
+    printf("Hardware Version: %d.%d\n", tokenInfo.hardwareVersion.major, tokenInfo.hardwareVersion.minor);
+    printf("Firmware Version: %d.%d\n", tokenInfo.firmwareVersion.major, tokenInfo.firmwareVersion.minor);
 
     // /*************************************************************************
     //  * Найти закрытый ключ на токене                                          *
