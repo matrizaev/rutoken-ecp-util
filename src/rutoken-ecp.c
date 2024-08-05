@@ -361,11 +361,11 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
 
     for (size_t i = 0; i < keysCount; i++)
     {
-        CK_ATTRIBUTE label = {CKA_LABEL, NULL, 0};
-        rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], &label, 1);
+        CK_ATTRIBUTE label[] = {{CKA_ID, NULL, 0}};
+        rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], label, 1);
         check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
 
-        printf("Private Key ID: %.32s\n", (char *)label.pValue);
+        printf("Private Key ID: %.32s\n", (char *)label[0].pValue);
     }
 
     /*************************************************************************
@@ -375,39 +375,39 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
                            &certificates, &certificatesCount);
     check(r == 0 && certificatesCount > 0, "There are no certificates available.");
 
-    for (size_t i = 0; i < certificatesCount; i++)
-    {
-        CK_ATTRIBUTE label = {CKA_LABEL, NULL, 0};
-        rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], &label, 1);
-        check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+    // for (size_t i = 0; i < certificatesCount; i++)
+    // {
+    //     CK_ATTRIBUTE label[] = {{CKA_ID, NULL, 0}};
+    //     rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], label, 1);
+    //     check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
 
-        printf("Certificate ID: %.32s\n", (char *)label.pValue);
+    //     printf("Certificate ID: %.32s\n", (char *)label[0].pValue);
 
-        CK_ATTRIBUTE certValue = {CKA_VALUE, NULL, 0};
-        rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], &certValue, 1);
-        check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+    //     CK_ATTRIBUTE certValue = {CKA_VALUE, NULL, 0};
+    //     rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], &certValue, 1);
+    //     check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
 
-        certificateInfoText = (CK_CHAR_PTR)malloc(certValue.ulValueLen + 1);
-        check_mem(certificateInfoText);
-        memcpy(certificateInfoText, certValue.pValue, certValue.ulValueLen);
-        certificateInfoText[certValue.ulValueLen] = '\0';
+    //     certificateInfoText = (CK_CHAR_PTR)malloc(certValue.ulValueLen + 1);
+    //     check_mem(certificateInfoText);
+    //     memcpy(certificateInfoText, certValue.pValue, certValue.ulValueLen);
+    //     certificateInfoText[certValue.ulValueLen] = '\0';
 
-        printf("Certificate Value: %.32s\n", certificateInfoText);
+    //     printf("Certificate Value: %.32s\n", certificateInfoText);
 
-        free(certificateInfoText);
-        certificateInfoText = NULL;
+    //     free(certificateInfoText);
+    //     certificateInfoText = NULL;
 
-        CK_ULONG certificateInfoTextLen = 0;
-        rv = context.functionListEx->C_EX_GetCertificateInfoText(context.slots[context.slot], certificates[i], &certificateInfoText, &certificateInfoTextLen);
-        check(rv == CKR_OK, "C_EX_GetCertificateInfoText: %s", rv_to_str(rv));
+    //     CK_ULONG certificateInfoTextLen = 0;
+    //     rv = context.functionListEx->C_EX_GetCertificateInfoText(context.slots[context.slot], certificates[i], &certificateInfoText, &certificateInfoTextLen);
+    //     check(rv == CKR_OK, "C_EX_GetCertificateInfoText: %s", rv_to_str(rv));
 
-        puts("Certificate Info Text:");
-        fwrite(certificateInfoText, 1, certificateInfoTextLen, stdout);
-        puts("");
+    //     puts("Certificate Info Text:");
+    //     fwrite(certificateInfoText, 1, certificateInfoTextLen, stdout);
+    //     puts("");
 
-        free(certificateInfoText);
-        certificateInfoText = NULL;
-    }
+    //     free(certificateInfoText);
+    //     certificateInfoText = NULL;
+    // }
 
 error:
     /*************************************************************************
