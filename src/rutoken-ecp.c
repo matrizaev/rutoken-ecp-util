@@ -370,14 +370,15 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
 
         printf("Private Keys ID Len: %lu\n", label[0].ulValueLen);
 
-        label[0].pValue = malloc(label[0].ulValueLen + 1);
+        label[0].pValue = malloc(label[0].ulValueLen);
         check_mem(label[0].pValue);
         rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], label, 1);
         check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
-        char *key_id = label[0].pValue;
-        key_id[label[0].ulValueLen] = '\0';
 
-        printf("Private Key ID: %.s\n", (char *)label[0].pValue);
+        for (size_t j = 0; j < label[0].ulValueLen; j++)
+        {
+            printf("%.2X ", ((uint8_t *)label[0].pValue)[j]);
+        }
     }
 
     /*************************************************************************
