@@ -476,10 +476,11 @@ uint8_t *sign(void *inData, size_t inputLength, size_t *outputLength, uint8_t *u
     CK_BYTE_PTR signature = NULL;
     CK_ULONG signatureSize = 0;
     uint8_t *result = NULL;
+    RutokenEcpContext context = {0};
 
     check(inData != NULL && outputLength != NULL && userPIN != NULL && userPINLen && keyPairId != NULL && keyPairIdLen != 0, "Function input is invalid.");
 
-    RutokenEcpContext context = init_pkcs11(userPIN, userPINLen, slot);
+    context = init_pkcs11(userPIN, userPINLen, slot);
     check(pkcs11_initialized(context), "pkcs11 is not initialized");
 
     CK_ATTRIBUTE privateKeyTemplate[] =
