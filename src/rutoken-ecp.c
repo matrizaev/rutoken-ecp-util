@@ -361,10 +361,14 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
                                &privateKeys, &keysCount);
     check((r == 0) && (keysCount > 0), "There are no private keys available.");
 
+    printf("Private Keys Count: %lu\n", keysCount);
+
     for (size_t i = 0; i < keysCount; i++)
     {
         rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], label, 1);
         check(rv == CKR_OK && label[0].ulValueLen > 0, "C_GetAttributeValue: %s", rv_to_str(rv));
+
+        printf("Private Keys ID Len: %lu\n", label[0].ulValueLen);
 
         label[0].pValue = malloc(label[0].ulValueLen + 1);
         check_mem(label[0].pValue);
