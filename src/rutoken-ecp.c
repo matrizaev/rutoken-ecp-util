@@ -291,6 +291,8 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
             {CKA_CERTIFICATE_TYPE, &certificateType, sizeof(certificateType)}, // An X.509 certificate
         };
 
+    CK_ATTRIBUTE label[] = {{CKA_ID, NULL, 0}};
+
     rv = context.functionList->C_GetInfo(&info);
     check(rv == CKR_OK, "C_GetInfo: %s", rv_to_str(rv));
 
@@ -361,11 +363,17 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
 
     for (size_t i = 0; i < keysCount; i++)
     {
-        CK_ATTRIBUTE label[] = {{CKA_ID, NULL, 0}};
+        rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], label, 1);
+        check(rv == CKR_OK && label[0].ulValueLen > 0, "C_GetAttributeValue: %s", rv_to_str(rv));
+
+        label[0].pValue = malloc(label[0].ulValueLen + 1);
+        check_mem(label[0].pValue);
         rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], label, 1);
         check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+        char *key_id = label[0].pValue;
+        key_id[label[0].ulValueLen] = '\0';
 
-        printf("Private Key ID: %.32s\n", (char *)label[0].pValue);
+        printf("Private Key ID: %.s\n", (char *)label[0].pValue);
     }
 
     /*************************************************************************
@@ -424,6 +432,10 @@ error:
     if (certificateInfoText != NULL)
     {
         free(certificateInfoText);
+    }
+    if (label[0].pValue != NULL)
+    {
+        free(label[0].pValue);
     }
 
     close_pkcs11(context);
