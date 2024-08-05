@@ -379,6 +379,7 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
         {
             printf("%.2X ", ((uint8_t *)label[0].pValue)[j]);
         }
+        puts("");
     }
 
     /*************************************************************************
