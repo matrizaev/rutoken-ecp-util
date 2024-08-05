@@ -100,7 +100,7 @@ void main(int argc, char *argv[])
 
     if (strcmp(command, "list") == 0)
     {
-        list_token(arguments.user_pin, strlen(arguments.user_pin), arguments.key_pair_id, strlen(arguments.key_pair_id), arguments.slot);
+        list_token(arguments.user_pin, strlen(arguments.user_pin), arguments.slot);
     }
     else if (strcmp(command, "sign") == 0)
     {

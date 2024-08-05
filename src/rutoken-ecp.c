@@ -253,18 +253,43 @@ static bool pkcs11_initialized(RutokenEcpContext context)
            context.session > 0;
 }
 
-void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t keyPairIdLen, size_t slot)
+void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
 {
 
     RutokenEcpContext context = init_pkcs11(userPIN, userPINLen, slot);
 
     check(pkcs11_initialized(context), "pkcs11 is not initialized");
 
-    CK_RV rv;
+    CK_RV rv = 0;
     CK_INFO info = {0};
     CK_SLOT_INFO slotInfo = {0};
     CK_TOKEN_INFO tokenInfo = {0};
     CK_TOKEN_INFO_EXTENDED tokenInfoEx = {0};
+    CK_CHAR_PTR certificateInfoText = NULL;
+
+    CK_OBJECT_CLASS privateKeyObject = CKO_PRIVATE_KEY;
+    CK_OBJECT_CLASS certificateObject = CKO_CERTIFICATE;
+    CK_BBOOL attributeTrue = CK_TRUE;
+    CK_CERTIFICATE_TYPE certificateType = CKC_X_509;
+
+    CK_OBJECT_HANDLE_PTR privateKeys = NULL;
+    CK_ULONG keysCount = 0;
+
+    CK_OBJECT_HANDLE_PTR certificates = NULL;
+    CK_ULONG certificatesCount;
+
+    CK_ATTRIBUTE privateKeyTemplate[] =
+        {
+            {CKA_CLASS, &privateKeyObject, sizeof(privateKeyObject)}, // Object class is private key
+            {CKA_TOKEN, &attributeTrue, sizeof(attributeTrue)},       // Token object
+        };
+
+    CK_ATTRIBUTE certificateTemplate[] =
+        {
+            {CKA_CLASS, &certificateObject, sizeof(certificateObject)},        // Object class is certificate
+            {CKA_TOKEN, &attributeTrue, sizeof(attributeTrue)},                // Token object
+            {CKA_CERTIFICATE_TYPE, &certificateType, sizeof(certificateType)}, // An X.509 certificate
+        };
 
     rv = context.functionList->C_GetInfo(&info);
     check(rv == CKR_OK, "C_GetInfo: %s", rv_to_str(rv));
@@ -327,32 +352,79 @@ void list_token(uint8_t *userPIN, size_t userPINLen, uint8_t *keyPairId, size_t 
     printf("Token Body Color: %lu\n", tokenInfoEx.ulBodyColor);
     printf("Token Firmware Checksum: %lu\n", tokenInfoEx.ulFirmwareChecksum);
 
-    // /*************************************************************************
-    //  * Найти закрытый ключ на токене                                          *
-    //  *************************************************************************/
-    // int r = find_token_objects(functionList, session, privateKeyTemplate, arraysize(privateKeyTemplate),
-    //                            &privateKeys, &keysCount);
-    // check((r == 0) && (keysCount > 0), "There are no private keys available.");
+    /*************************************************************************
+     * Find private keys on the token                                        *
+     *************************************************************************/
+    int r = find_token_objects(context.functionList, context.session, privateKeyTemplate, arraysize(privateKeyTemplate),
+                               &privateKeys, &keysCount);
+    check((r == 0) && (keysCount > 0), "There are no private keys available.");
 
-    // /*************************************************************************
-    //  * Найти сертификат на токене                                             *
-    //  *************************************************************************/
-    // r = find_token_objects(functionList, session, certificateTemplate, arraysize(certificateTemplate),
-    //                        &certificates, &certificatesCount);
-    // check(r == 0 && certificatesCount > 0, "There are no certificates available.");
+    for (size_t i = 0; i < keysCount; i++)
+    {
+        CK_ATTRIBUTE label = {CKA_LABEL, NULL, 0};
+        rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], &label, 1);
+        check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+
+        printf("Private Key ID: %.32s\n", (char *)label.pValue);
+    }
+
+    /*************************************************************************
+     * Find certificates on the token                                        *
+     *************************************************************************/
+    r = find_token_objects(context.functionList, context.session, certificateTemplate, arraysize(certificateTemplate),
+                           &certificates, &certificatesCount);
+    check(r == 0 && certificatesCount > 0, "There are no certificates available.");
+
+    for (size_t i = 0; i < certificatesCount; i++)
+    {
+        CK_ATTRIBUTE label = {CKA_LABEL, NULL, 0};
+        rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], &label, 1);
+        check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+
+        printf("Certificate ID: %.32s\n", (char *)label.pValue);
+
+        CK_ATTRIBUTE certValue = {CKA_VALUE, NULL, 0};
+        rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], &certValue, 1);
+        check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+
+        certificateInfoText = (CK_CHAR_PTR)malloc(certValue.ulValueLen + 1);
+        check_mem(certificateInfoText);
+        memcpy(certificateInfoText, certValue.pValue, certValue.ulValueLen);
+        certificateInfoText[certValue.ulValueLen] = '\0';
+
+        printf("Certificate Value: %.32s\n", certificateInfoText);
+
+        free(certificateInfoText);
+        certificateInfoText = NULL;
+
+        CK_ULONG certificateInfoTextLen = 0;
+        rv = context.functionListEx->C_EX_GetCertificateInfoText(context.slots[context.slot], certificates[i], &certificateInfoText, &certificateInfoTextLen);
+        check(rv == CKR_OK, "C_EX_GetCertificateInfoText: %s", rv_to_str(rv));
+
+        puts("Certificate Info Text:");
+        fwrite(certificateInfoText, 1, certificateInfoTextLen, stdout);
+        puts("");
+
+        free(certificateInfoText);
+        certificateInfoText = NULL;
+    }
 
 error:
     /*************************************************************************
      * Освободить память, выделенную на объекты                               *
      *************************************************************************/
-    // if (certificates != NULL)
-    // {
-    //     free(certificates);
-    // }
-    // if (privateKeys != NULL)
-    // {
-    //     free(privateKeys);
-    // }
+    if (certificates != NULL)
+    {
+        free(certificates);
+    }
+    if (privateKeys != NULL)
+    {
+        free(privateKeys);
+    }
+    if (certificateInfoText != NULL)
+    {
+        free(certificateInfoText);
+    }
 
     close_pkcs11(context);
 }
