@@ -416,6 +416,17 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
         free(label[0].pValue);
         label[0].pValue = NULL;
         label[0].ulValueLen = 0;
+
+        CK_ULONG certificateInfoTextLen = 0;
+        rv = context.functionListEx->C_EX_GetCertificateInfoText(context.session, certificates[i], &certificateInfoText, &certificateInfoTextLen);
+        check(rv == CKR_OK && certificateInfoTextLen > 0 && certificateInfoText != NULL, "C_EX_GetCertificateInfoText: %s", rv_to_str(rv));
+
+        puts("Certificate Info:");
+        fwrite(certificateInfoText, sizeof(char), certificateInfoTextLen, stdout);
+        rv = context.functionListEx->C_EX_FreeBuffer(certificateInfoText);
+        if (rv != CKR_OK)
+            log_err("C_EX_FreeBuffer: %s", rv_to_str(rv));
+        certificateInfoText = NULL;
     }
 
 error:
@@ -432,7 +443,9 @@ error:
     }
     if (certificateInfoText != NULL)
     {
-        free(certificateInfoText);
+        rv = context.functionListEx->C_EX_FreeBuffer(certificateInfoText);
+        if (rv != CKR_OK)
+            log_err("C_EX_FreeBuffer: %s", rv_to_str(rv));
     }
     if (label[0].pValue != NULL)
     {
