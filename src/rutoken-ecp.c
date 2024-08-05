@@ -375,11 +375,15 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
         rv = context.functionList->C_GetAttributeValue(context.session, privateKeys[i], label, 1);
         check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
 
+        printf("Private Keys ID: ");
         for (size_t j = 0; j < label[0].ulValueLen; j++)
         {
             printf("%c", ((char *)label[0].pValue)[j]);
         }
         puts("");
+        free(label[0].pValue);
+        label[0].pValue = NULL;
+        label[0].ulValueLen = 0;
     }
 
     /*************************************************************************
@@ -389,39 +393,30 @@ void list_token(uint8_t *userPIN, size_t userPINLen, size_t slot)
                            &certificates, &certificatesCount);
     check(r == 0 && certificatesCount > 0, "There are no certificates available.");
 
-    // for (size_t i = 0; i < certificatesCount; i++)
-    // {
-    //     CK_ATTRIBUTE label[] = {{CKA_ID, NULL, 0}};
-    //     rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], label, 1);
-    //     check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+    printf("Certificates Count: %lu\n", certificatesCount);
 
-    //     printf("Certificate ID: %.32s\n", (char *)label[0].pValue);
+    for (size_t i = 0; i < certificatesCount; i++)
+    {
+        rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], label, 1);
+        check(rv == CKR_OK && label[0].ulValueLen > 0, "C_GetAttributeValue: %s", rv_to_str(rv));
 
-    //     CK_ATTRIBUTE certValue = {CKA_VALUE, NULL, 0};
-    //     rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], &certValue, 1);
-    //     check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
+        printf("Certificate ID Len: %lu\n", label[0].ulValueLen);
 
-    //     certificateInfoText = (CK_CHAR_PTR)malloc(certValue.ulValueLen + 1);
-    //     check_mem(certificateInfoText);
-    //     memcpy(certificateInfoText, certValue.pValue, certValue.ulValueLen);
-    //     certificateInfoText[certValue.ulValueLen] = '\0';
+        label[0].pValue = malloc(label[0].ulValueLen);
+        check_mem(label[0].pValue);
+        rv = context.functionList->C_GetAttributeValue(context.session, certificates[i], label, 1);
+        check(rv == CKR_OK, "C_GetAttributeValue: %s", rv_to_str(rv));
 
-    //     printf("Certificate Value: %.32s\n", certificateInfoText);
-
-    //     free(certificateInfoText);
-    //     certificateInfoText = NULL;
-
-    //     CK_ULONG certificateInfoTextLen = 0;
-    //     rv = context.functionListEx->C_EX_GetCertificateInfoText(context.slots[context.slot], certificates[i], &certificateInfoText, &certificateInfoTextLen);
-    //     check(rv == CKR_OK, "C_EX_GetCertificateInfoText: %s", rv_to_str(rv));
-
-    //     puts("Certificate Info Text:");
-    //     fwrite(certificateInfoText, 1, certificateInfoTextLen, stdout);
-    //     puts("");
-
-    //     free(certificateInfoText);
-    //     certificateInfoText = NULL;
-    // }
+        printf("Certificate ID: ");
+        for (size_t j = 0; j < label[0].ulValueLen; j++)
+        {
+            printf("%c", ((char *)label[0].pValue)[j]);
+        }
+        puts("");
+        free(label[0].pValue);
+        label[0].pValue = NULL;
+        label[0].ulValueLen = 0;
+    }
 
 error:
     /*************************************************************************
