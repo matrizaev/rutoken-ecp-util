@@ -111,7 +111,7 @@ void main(int argc, char *argv[])
         size_t signature_name_size = strlen(file_name) + 6;
         signature_name = calloc(signature_name_size, sizeof(char));
         check_mem(signature_name);
-        check(snprintf(signature_name, signature_name_size, "%s.sign", file_name) == signature_name_size, "Could not compose the signature file name");
+        check(snprintf(signature_name, signature_name_size, "%s.sign", file_name) == signature_name_size - 1, "Could not compose the signature file name");
 
         check(fseek(input_file, 0, SEEK_END) != -1, "Could not seek inside the input file");
         long input_file_size = ftell(input_file);
